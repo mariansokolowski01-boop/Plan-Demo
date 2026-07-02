@@ -1,9 +1,8 @@
 {
-  "projectId": "cybernetic-fact-8txfk",
-  "appId": "1:110216305217:web:d57a975498517fe5c644c0",
-  "apiKey": "AIzaSyBc-bwSHCWYSHaCp9Gl1UEYaDTOqyG0Nfc",
-  "authDomain": "cybernetic-fact-8txfk.firebaseapp.com",
-  "storageBucket": "cybernetic-fact-8txfk.firebasestorage.app",
-  "messagingSenderId": "110216305217",
-  "measurementId": ""
+  "apiKey": "AIzaSyCIvI4byos0ifm-HB7x5wXCXs3wLYiUx90",
+  "authDomain": "stal-tech-monitor.firebaseapp.com",
+  "projectId": "stal-tech-monitor",
+  "storageBucket": "stal-tech-monitor.firebasestorage.app",
+  "messagingSenderId": "629666090800",
+  "appId": "1:629666090800:web:0b2ba76d66a1444f6f42f5"
 }
