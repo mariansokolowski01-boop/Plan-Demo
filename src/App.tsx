@@ -118,7 +118,7 @@ function App() {
         <header className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl">
           <div>
             <h1 className="text-2xl font-extrabold text-white tracking-tight">Monitor Zużycia RBH 2026</h1>
-            <p className="text-slate-400 text-sm mt-1">Śledzenie na żywo</p>
+            <p className="text-slate-400 text-sm mt-1">Prace w Toku, live</p>
           </div>
           
           <div className="flex items-center gap-4">

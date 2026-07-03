@@ -51,11 +51,19 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({ orders, title, emptyMe
           </thead>
           <tbody className="divide-y divide-slate-800/50">
             {orders.length > 0 ? (
-              orders.map(order => {
+              orders.map((order, index) => {
                 const rbhPerT = order.weightT > 0 ? order.totalRbh / order.weightT : 0;
+                const isNewCompany = index > 0 && order.company !== orders[index - 1].company;
+                
                 return (
-                  <tr key={order.id} className="hover:bg-slate-800/30 transition-colors">
-                    <td className="p-4 pl-6 text-slate-300 font-medium">{order.company}</td>
+                  <tr key={order.id} className={`hover:bg-slate-800/30 transition-colors ${isNewCompany ? 'border-t-2 border-slate-700/80 bg-slate-900/30' : ''}`}>
+                    <td className="p-4 pl-6 text-slate-300 font-medium">
+                      {isNewCompany || index === 0 ? (
+                        <span className="font-bold text-slate-200">{order.company}</span>
+                      ) : (
+                        <span className="text-slate-600 pl-2">↳</span>
+                      )}
+                    </td>
                     <td className="p-4 text-indigo-300 font-mono text-sm">{order.id}</td>
                     <td className="p-4 text-slate-400 text-sm truncate max-w-[300px]" title={order.description}>{order.description}</td>
                     <td className="p-4 text-slate-300 text-center text-sm">{order.deadlineStr || '-'}</td>
