@@ -61,7 +61,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({ orders, title, emptyMe
                       {isNewCompany || index === 0 ? (
                         <span className="font-bold text-slate-200">{order.company}</span>
                       ) : (
-                        <span className="text-slate-600 pl-2">↳</span>
+                        <span>{order.company}</span>
                       )}
                     </td>
                     <td className="p-4 text-indigo-300 font-mono text-sm">{order.id}</td>
