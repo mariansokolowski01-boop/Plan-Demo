@@ -177,8 +177,8 @@ function App() {
 
   const tabs = [
     { id: 'aktywne', label: 'W Toku' },
-    ...(errorWeightOrders.length > 0 ? [{ id: 'bledy', label: 'Brak wagi' }] : []),
-    { id: 'zakonczone', label: 'Zakończone' }
+    { id: 'zakonczone', label: 'Zakończone' },
+    ...(errorWeightOrders.length > 0 ? [{ id: 'bledy', label: 'Brak wagi' }] : [])
   ];
 
   // Reset tab if it becomes hidden
