@@ -60,7 +60,8 @@ export function processOrders(planData: any[][], rbhData: any[][]): OrderData[] 
       const id = orderWew || orderClient;
       if (!id) continue;
       
-      const status = row[14]?.toString().trim().toLowerCase() || 'w toku';
+      const statusRaw = row[14]?.toString().trim() || 'W toku';
+      const status = statusRaw.toLowerCase();
       
       if (status.includes('anulow') || status.includes('canc') || status.includes('przeniesione')) {
         continue;
@@ -94,7 +95,11 @@ export function processOrders(planData: any[][], rbhData: any[][]): OrderData[] 
         deadlineStr = `${parsedDate.getDate().toString().padStart(2, '0')}.${(parsedDate.getMonth() + 1).toString().padStart(2, '0')}.${parsedDate.getFullYear()}`;
       }
       
-      const isPortal = false;
+      if (status === 'zakończone') {
+          daysLeft = null;
+      }
+      
+      const isPortal = desc.toLowerCase().includes('portal') || id.toLowerCase().includes('portal');
       const isHala100 = id.startsWith('100/');
       const isStalTech = company.toLowerCase().includes('stal-tech');
       const isErrorWeight = weightT <= 0;
@@ -104,7 +109,7 @@ export function processOrders(planData: any[][], rbhData: any[][]): OrderData[] 
         company,
         description: desc,
         weightT,
-        status: row[14]?.toString().trim() || 'W toku',
+        status: statusRaw,
         totalRbh,
         deadlineStr,
         daysLeft,

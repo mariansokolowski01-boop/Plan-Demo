@@ -94,6 +94,9 @@ function App() {
   const activeOrders = mainOrders.filter(
     (o) => o.status.toLowerCase() !== "zakończone",
   );
+  if (dashboardHala) {
+    activeOrders.push(dashboardHala);
+  }
 
   // Zakładka 'Zakończone'
   const completedOrdersList = mainOrders.filter(
@@ -124,6 +127,28 @@ function App() {
   });
 
   // Obliczamy łączną wagę dla każdej firmy dla Zakończonych
+  const completedPortals = portals.filter(o => o.status.toLowerCase() === 'zakończone');
+  if (completedPortals.length > 0) {
+    const sumWeight = completedPortals.reduce((sum, p) => sum + p.weightT, 0);
+    const sumRbh = completedPortals.reduce((sum, p) => sum + p.totalRbh, 0);
+    const svenskCompany = completedOrdersList.find(o => o.company.toLowerCase().includes('svensk'))?.company || 'Svenskinfrateknik';
+    
+    completedOrdersList.push({
+      id: 'SUMA PORTALI',
+      company: svenskCompany,
+      description: `Zakończone Portale (${completedPortals.length} poz.)`,
+      weightT: sumWeight,
+      totalRbh: sumRbh,
+      status: 'Zakończone',
+      deadlineStr: '-',
+      daysLeft: null,
+      isPortal: true,
+      isHala100: false,
+      isStalTech: false,
+      isErrorWeight: false
+    });
+  }
+
   const completedCompanyWeights = new Map<string, number>();
   completedOrdersList.forEach((o) => {
     completedCompanyWeights.set(
@@ -143,8 +168,24 @@ function App() {
       return a.company.localeCompare(b.company);
     }
     // Następnie Nr Zlecenia (rosnąco)
+    if (a.id === 'SUMA PORTALI') return 1;
+    if (b.id === 'SUMA PORTALI') return -1;
     return a.id.localeCompare(b.id);
   });
+
+  const [activeTab, setActiveTab] = useState<'aktywne' | 'portale' | 'hala' | 'bledy' | 'zakonczone'>('aktywne');
+
+  const tabs = [
+    { id: 'aktywne', label: 'W Toku' },
+    ...(errorWeightOrders.length > 0 ? [{ id: 'bledy', label: 'Brak wagi' }] : []),
+    { id: 'zakonczone', label: 'Zakończone' }
+  ];
+
+  // Reset tab if it becomes hidden
+  useEffect(() => {
+    
+    if (activeTab === 'bledy' && errorWeightOrders.length === 0) setActiveTab('aktywne');
+  }, [dashboardHala, errorWeightOrders, activeTab]);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200 p-4 md:p-8 font-sans selection:bg-indigo-500/30">
@@ -187,48 +228,52 @@ function App() {
           </div>
         )}
 
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+          {tabs.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`px-6 py-3 rounded-xl font-medium text-sm transition-all whitespace-nowrap ${
+                activeTab === tab.id
+                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20'
+                  : 'bg-slate-900 text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
         <main className="min-h-[500px]">
-          <OrdersTable
-            orders={inProgressOrders}
-            title="Aktywne Zlecenia (W Toku)"
-            emptyMessage={
-              loading
-                ? "Trwa pobieranie danych z Google Sheets..."
-                : "Brak zleceń w tej kategorii."
-            }
-          />
-        </main>
-
-        <PortalsSection portals={portals} />
-
-        {dashboardHala && (
-          <div className="mt-8">
-            <OrdersTable
-              orders={[dashboardHala]}
-              title="INWESTYCJA: HALA"
-              emptyMessage="Brak zleceń Hala Invest."
+          {activeTab === 'aktywne' && (
+            <OrdersTable 
+              orders={inProgressOrders} 
+              title="Aktywne Zlecenia (W Toku)"
+              emptyMessage={loading ? 'Trwa pobieranie danych z Google Sheets...' : 'Brak zleceń w tej kategorii.'}
             />
-          </div>
-        )}
+          )}
 
-        {errorWeightOrders.length > 0 && (
-          <div className="mt-8">
-            <OrdersTable
-              orders={errorWeightOrders}
+          
+
+          
+
+          {activeTab === 'bledy' && errorWeightOrders.length > 0 && (
+            <OrdersTable 
+              orders={errorWeightOrders} 
               title="Zlecenia bez wagi (Błąd wyliczeń wagowych)"
               emptyMessage="Brak zleceń bez wagi."
             />
-          </div>
-        )}
+          )}
 
-        <div className="mt-8">
-          <OrdersTable
-            orders={completedOrders}
-            title="Zakończone Zlecenia (2026)"
-            emptyMessage={loading ? 'Trwa pobieranie danych...' : 'Brak zakończonych zleceń w 2026.'}
-            disableGrouping={true}
-          />
-        </div>
+          {activeTab === 'zakonczone' && (
+            <OrdersTable
+              orders={completedOrders}
+              title="Zakończone Zlecenia (2026)"
+              emptyMessage={loading ? 'Trwa pobieranie danych...' : 'Brak zakończonych zleceń w 2026.'}
+              disableGrouping={true}
+            />
+          )}
+        </main>
       </div>
     </div>
   );
