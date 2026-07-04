@@ -6,9 +6,10 @@ interface OrdersTableProps {
   orders: OrderData[];
   title: string;
   emptyMessage: string;
+  disableGrouping?: boolean;
 }
 
-export const OrdersTable: React.FC<OrdersTableProps> = ({ orders, title, emptyMessage }) => {
+export const OrdersTable: React.FC<OrdersTableProps> = ({ orders, title, emptyMessage, disableGrouping = false }) => {
   const totalWeight = orders.reduce((sum, o) => sum + o.weightT, 0);
   const totalRbh = orders.reduce((sum, o) => sum + o.totalRbh, 0);
 
@@ -53,12 +54,14 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({ orders, title, emptyMe
             {orders.length > 0 ? (
               orders.map((order, index) => {
                 const rbhPerT = order.weightT > 0 ? order.totalRbh / order.weightT : 0;
-                const isNewCompany = index > 0 && order.company !== orders[index - 1].company;
+                const isNewCompany = !disableGrouping && index > 0 && order.company !== orders[index - 1].company;
                 
                 return (
                   <tr key={order.id} className={`hover:bg-slate-800/30 transition-colors ${isNewCompany ? 'border-t-2 border-slate-700/80 bg-slate-900/30' : ''}`}>
                     <td className="p-4 pl-6 text-slate-300 font-medium">
-                      {isNewCompany || index === 0 ? (
+                      {disableGrouping ? (
+                        <span>{order.company}</span>
+                      ) : isNewCompany || index === 0 ? (
                         <span className="font-bold text-slate-200">{order.company}</span>
                       ) : (
                         <span>{order.company}</span>

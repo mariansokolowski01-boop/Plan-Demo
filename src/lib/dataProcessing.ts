@@ -62,8 +62,6 @@ export function processOrders(planData: any[][], rbhData: any[][]): OrderData[] 
       
       const status = row[14]?.toString().trim().toLowerCase() || 'w toku';
       
-      if (status === 'zakończone') continue;
-      
       if (status.includes('anulow') || status.includes('canc') || status.includes('przeniesione')) {
         continue;
       }
