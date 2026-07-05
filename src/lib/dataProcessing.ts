@@ -27,7 +27,6 @@ function parseDate(val: any): Date | null {
 
 export function processOrders(planData: any[][], rbhData: any[][]): OrderData[] {
   const rbhMap = new Map<string, number>();
-
   if (rbhData && rbhData.length > 1) {
     for (let i = 1; i < rbhData.length; i++) {
       const row = rbhData[i];
@@ -46,7 +45,7 @@ export function processOrders(planData: any[][], rbhData: any[][]): OrderData[] 
     }
   }
 
-  const orders: OrderData[] = [];
+  const groupedOrders = new Map<string, OrderData>();
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -57,8 +56,8 @@ export function processOrders(planData: any[][], rbhData: any[][]): OrderData[] 
       
       const orderWew = row[4]?.toString().trim() || '';
       const orderClient = row[1]?.toString().trim() || '';
-      const id = orderWew || orderClient;
-      if (!id) continue;
+      const rawId = orderWew || orderClient;
+      if (!rawId) continue;
       
       const statusRaw = row[14]?.toString().trim() || 'W toku';
       const status = statusRaw.toLowerCase();
@@ -68,7 +67,7 @@ export function processOrders(planData: any[][], rbhData: any[][]): OrderData[] 
       }
 
       const company = row[2]?.toString().trim() || 'Nieznana';
-      const desc = row[3]?.toString().trim() || '';
+      let desc = row[3]?.toString().trim() || '';
       
       let weightT = 0;
       let weightStr = row[11]?.toString().replace(/\s/g, '').replace(',', '.') || '0';
@@ -78,13 +77,19 @@ export function processOrders(planData: any[][], rbhData: any[][]): OrderData[] 
           weightT = weightKg / 1000;
       }
       
-      const totalRbh = rbhMap.get(orderWew) || 0;
+      // Determine base ID for grouping parts
+      let baseId = rawId;
+      const czMatch = rawId.match(/(.*?)\s*cz\.?\s*\d+/i);
+      let isPart = false;
+      if (czMatch) {
+          baseId = czMatch[1].trim();
+          isPart = true;
+      }
       
       let deadlineStr = row[7]?.toString().trim() || ''; // H (Data Zakończenia)
       if (!deadlineStr) {
           deadlineStr = row[6]?.toString().trim() || ''; // G (Data Wydania) jako fallback
       }
-
       let daysLeft: number | null = null;
       const parsedDate = parseDate(deadlineStr);
       if (parsedDate) {
@@ -99,27 +104,48 @@ export function processOrders(planData: any[][], rbhData: any[][]): OrderData[] 
           daysLeft = null;
       }
       
-      const isPortal = desc.toLowerCase().includes('portal') || id.toLowerCase().includes('portal');
-      const isHala100 = id.startsWith('100/');
-      const isStalTech = company.toLowerCase().includes('stal-tech');
-      const isErrorWeight = weightT <= 0;
+      if (groupedOrders.has(baseId)) {
+          const existing = groupedOrders.get(baseId)!;
+          existing.weightT += weightT;
+          if (isPart && !existing.description.includes('(Zsumowane części zlecenia)')) {
+              existing.description += ' (Zsumowane części zlecenia)';
+          }
+          // Promote status to "W toku" if any part is still in progress
+          if (status !== 'zakończone' && existing.status.toLowerCase() === 'zakończone') {
+              existing.status = statusRaw;
+              existing.daysLeft = daysLeft;
+          }
+      } else {
+          const totalRbh = rbhMap.get(baseId) || rbhMap.get(rawId) || 0;
+          const isPortal = false;
+          const isHala100 = baseId.startsWith('100/');
+          const isStalTech = company.toLowerCase().includes('stal-tech');
+          
+          let finalDesc = desc;
+          if (isPart) {
+              finalDesc += ' (Zsumowane części zlecenia)';
+          }
 
-      orders.push({
-        id,
-        company,
-        description: desc,
-        weightT,
-        status: statusRaw,
-        totalRbh,
-        deadlineStr,
-        daysLeft,
-        isPortal,
-        isHala100,
-        isStalTech,
-        isErrorWeight
-      });
+          groupedOrders.set(baseId, {
+            id: baseId,
+            company,
+            description: finalDesc,
+            weightT,
+            status: statusRaw,
+            totalRbh,
+            deadlineStr,
+            daysLeft,
+            isPortal,
+            isHala100,
+            isStalTech,
+            isErrorWeight: false
+          });
+      }
     }
   }
 
-  return orders;
+  return Array.from(groupedOrders.values()).map(o => ({
+    ...o,
+    isErrorWeight: o.weightT <= 0
+  }));
 }

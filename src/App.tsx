@@ -127,28 +127,6 @@ function App() {
   });
 
   // Obliczamy łączną wagę dla każdej firmy dla Zakończonych
-  const completedPortals = portals.filter(o => o.status.toLowerCase() === 'zakończone');
-  if (completedPortals.length > 0) {
-    const sumWeight = completedPortals.reduce((sum, p) => sum + p.weightT, 0);
-    const sumRbh = completedPortals.reduce((sum, p) => sum + p.totalRbh, 0);
-    const svenskCompany = completedOrdersList.find(o => o.company.toLowerCase().includes('svensk'))?.company || 'Svenskinfrateknik';
-    
-    completedOrdersList.push({
-      id: 'SUMA PORTALI',
-      company: svenskCompany,
-      description: `Zakończone Portale (${completedPortals.length} poz.)`,
-      weightT: sumWeight,
-      totalRbh: sumRbh,
-      status: 'Zakończone',
-      deadlineStr: '-',
-      daysLeft: null,
-      isPortal: true,
-      isHala100: false,
-      isStalTech: false,
-      isErrorWeight: false
-    });
-  }
-
   const completedCompanyWeights = new Map<string, number>();
   completedOrdersList.forEach((o) => {
     completedCompanyWeights.set(
@@ -168,8 +146,8 @@ function App() {
       return a.company.localeCompare(b.company);
     }
     // Następnie Nr Zlecenia (rosnąco)
-    if (a.id === 'SUMA PORTALI') return 1;
-    if (b.id === 'SUMA PORTALI') return -1;
+    if (a.id === 'PORTALE_OGÓLNE') return 1;
+    if (b.id === 'PORTALE_OGÓLNE') return -1;
     return a.id.localeCompare(b.id);
   });
 
