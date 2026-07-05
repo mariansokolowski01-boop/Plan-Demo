@@ -89,7 +89,10 @@ export function processOrders(planData: any[][], rbhData: any[][]): OrderData[] 
       const id = row[1]?.toString().trim();
       if (!id) continue;
       
-      const desc = row[2]?.toString().trim() || '';
+      let desc = row[2]?.toString().trim() || '';
+      if (id === 'PORTALE_OGÓLNE') {
+          desc = 'zbiorcze zestawienie portali';
+      }
       
       let weightStr = row[3]?.toString().replace(/\s/g, '').replace(',', '.') || '0';
       weightStr = weightStr.replace(/[^0-9.-]/g, '');
